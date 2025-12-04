@@ -12,44 +12,62 @@ import (
 	"github.com/pkg/errors"
 )
 
-func (c *beaconApiValidatorClient) proposeAttestation(ctx context.Context, attestation *ethpb.Attestation) (*ethpb.AttestResponse, error) {
-	if err := helpers.ValidateNilAttestation(attestation); err != nil {
-		return nil, err
+func (c *beaconApiValidatorClient) submitAttestations(ctx context.Context, atts []*ethpb.Attestation) ([]*ethpb.AttestResponse, error) {
+	if len(atts) == 0 {
+		return nil, nil
 	}
-	marshalledAttestation, err := json.Marshal(jsonifyAttestations([]*ethpb.Attestation{attestation}))
+	for _, a := range atts {
+		if err := helpers.ValidateNilAttestation(a); err != nil {
+			return nil, err
+		}
+	}
+
+	marshalledAtts, err := json.Marshal(jsonifyAttestations(atts))
 	if err != nil {
 		return nil, err
 	}
 
-	headers := map[string]string{"Eth-Consensus-Version": version.String(attestation.Version())}
+	consensusVersion := version.String(slots.ToForkVersion(atts[0].Data.Slot))
+	headers := map[string]string{"Eth-Consensus-Version": consensusVersion}
 	err = c.jsonRestHandler.Post(
 		ctx,
 		"/eth/v2/beacon/pool/attestations",
 		headers,
-		bytes.NewBuffer(marshalledAttestation),
+		bytes.NewBuffer(marshalledAtts),
 		nil,
 	)
 	if err != nil {
 		return nil, err
 	}
 
-	attestationDataRoot, err := attestation.Data.HashTreeRoot()
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to compute attestation data root")
+	resp := make([]*ethpb.AttestResponse, len(atts))
+	for i, a := range atts {
+		// TODO: can this be different for each att?
+		attestationDataRoot, err := a.Data.HashTreeRoot()
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to compute attestation data root")
+		}
+		resp[i] = &ethpb.AttestResponse{AttestationDataRoot: attestationDataRoot[:]}
 	}
-
-	return &ethpb.AttestResponse{AttestationDataRoot: attestationDataRoot[:]}, nil
+	return resp, nil
 }
 
-func (c *beaconApiValidatorClient) proposeAttestationElectra(ctx context.Context, attestation *ethpb.SingleAttestation) (*ethpb.AttestResponse, error) {
-	if err := helpers.ValidateNilAttestation(attestation); err != nil {
-		return nil, err
+func (c *beaconApiValidatorClient) submitAttestationsElectra(ctx context.Context, atts []*ethpb.SingleAttestation) ([]*ethpb.AttestResponse, error) {
+	if len(atts) == 0 {
+		return nil, nil
 	}
-	marshalledAttestation, err := json.Marshal(jsonifySingleAttestations([]*ethpb.SingleAttestation{attestation}))
+	for _, a := range atts {
+		if err := helpers.ValidateNilAttestation(a); err != nil {
+			return nil, err
+		}
+	}
+
+	marshalledAttestation, err := json.Marshal(jsonifySingleAttestations(atts))
 	if err != nil {
 		return nil, err
 	}
-	consensusVersion := version.String(slots.ToForkVersion(attestation.Data.Slot))
+
+	consensusVersion := version.String(slots.ToForkVersion(atts[0].Data.Slot))
 	headers := map[string]string{"Eth-Consensus-Version": consensusVersion}
 	if err = c.jsonRestHandler.Post(
 		ctx,
@@ -61,10 +79,14 @@ func (c *beaconApiValidatorClient) proposeAttestationElectra(ctx context.Context
 		return nil, err
 	}
 
-	attestationDataRoot, err := attestation.Data.HashTreeRoot()
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to compute attestation data root")
+	resp := make([]*ethpb.AttestResponse, len(atts))
+	for i, a := range atts {
+		// TODO: can this be different for each att?
+		attestationDataRoot, err := a.Data.HashTreeRoot()
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to compute attestation data root")
+		}
+		resp[i] = &ethpb.AttestResponse{AttestationDataRoot: attestationDataRoot[:]}
 	}
-
-	return &ethpb.AttestResponse{AttestationDataRoot: attestationDataRoot[:]}, nil
+	return resp, nil
 }

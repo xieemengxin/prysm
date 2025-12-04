@@ -145,21 +145,21 @@ func (c *beaconApiValidatorClient) PrepareBeaconProposer(ctx context.Context, in
 	})
 }
 
-func (c *beaconApiValidatorClient) ProposeAttestation(ctx context.Context, in *ethpb.Attestation) (*ethpb.AttestResponse, error) {
-	ctx, span := trace.StartSpan(ctx, "beacon-api.ProposeAttestation")
+func (c *beaconApiValidatorClient) SubmitAttestations(ctx context.Context, in []*ethpb.Attestation) ([]*ethpb.AttestResponse, error) {
+	ctx, span := trace.StartSpan(ctx, "beacon-api.SubmitAttestations")
 	defer span.End()
 
-	return wrapInMetrics[*ethpb.AttestResponse]("ProposeAttestation", func() (*ethpb.AttestResponse, error) {
-		return c.proposeAttestation(ctx, in)
+	return wrapInMetrics[[]*ethpb.AttestResponse]("SubmitAttestations", func() ([]*ethpb.AttestResponse, error) {
+		return c.submitAttestations(ctx, in)
 	})
 }
 
-func (c *beaconApiValidatorClient) ProposeAttestationElectra(ctx context.Context, in *ethpb.SingleAttestation) (*ethpb.AttestResponse, error) {
-	ctx, span := trace.StartSpan(ctx, "beacon-api.ProposeAttestationElectra")
+func (c *beaconApiValidatorClient) SubmitAttestationsElectra(ctx context.Context, in []*ethpb.SingleAttestation) ([]*ethpb.AttestResponse, error) {
+	ctx, span := trace.StartSpan(ctx, "beacon-api.SubmitAttestationsElectra")
 	defer span.End()
 
-	return wrapInMetrics[*ethpb.AttestResponse]("ProposeAttestationElectra", func() (*ethpb.AttestResponse, error) {
-		return c.proposeAttestationElectra(ctx, in)
+	return wrapInMetrics[[]*ethpb.AttestResponse]("SubmitAttestationsElectra", func() ([]*ethpb.AttestResponse, error) {
+		return c.submitAttestationsElectra(ctx, in)
 	})
 }
 
