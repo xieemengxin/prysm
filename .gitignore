@@ -44,3 +44,14 @@ tmp
 
 # spectest coverage reports
 report.txt
+
+# ai
+.claude
+
+# bazel project
+.bazelbsp
+
+# doc
+TERM_DEPOSIT_MODIFICATION_GUIDE.md
+# lock
+MODULE.bazel.lock

@@ -3,6 +3,8 @@ import %workspace%/build/bazelrc/convenience.bazelrc
 import %workspace%/build/bazelrc/correctness.bazelrc
 import %workspace%/build/bazelrc/cross.bazelrc
 import %workspace%/build/bazelrc/debug.bazelrc
+# hermetic-cc is disabled on macOS (uses system Xcode toolchain)
+# See build/bazelrc/hermetic-cc.bazelrc for platform-specific configuration
 import %workspace%/build/bazelrc/hermetic-cc.bazelrc
 import %workspace%/build/bazelrc/performance.bazelrc
 
@@ -20,6 +22,8 @@ coverage --define=coverage_enabled=1
 
 # Stamp binaries with git information
 build --workspace_status_command=./hack/workspace_status.sh
+
+
 
 build --define blst_disabled=false
 run --define blst_disabled=false
@@ -55,3 +59,16 @@ build --define gotags=bazel
 # Abseil requires c++14 or greater.
 build --cxxopt=-std=c++20
 build --host_cxxopt=-std=c++20
+
+# Java toolchain configuration
+# Use remote JDK for hermetic builds (recommended)
+build --java_runtime_version=remotejdk_17
+build --tool_java_runtime_version=remotejdk_17
+
+# Pass necessary environment variables to the build sandbox (macOS only)
+# Note: /usr/bin must be included for git, date, and other standard Unix tools
+build:macos --action_env=PATH=/Users/caoguangpei/sdk/go1.25.5/bin:/opt/homebrew/opt/openjdk@17/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/Library/Developer/CommandLineTools/usr/bin
+build:macos --action_env=HOME
+build:macos --action_env=GOROOT=/Users/caoguangpei/sdk/go1.25.5
+build:macos --action_env=GOPATH
+build:macos --action_env=JAVA_HOME=/opt/homebrew/opt/openjdk@17/libexec/openjdk.jdk/Contents/Home

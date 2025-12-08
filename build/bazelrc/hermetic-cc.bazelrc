@@ -9,11 +9,15 @@
 # auto-detection (read: fallback to non-hermetic toolchain) is a footgun best
 # avoided. This option is not documented in bazel, so may break. If you intend
 # to use the hermetic toolchain exclusively, it won't hurt.
-build --action_env BAZEL_DO_NOT_DETECT_CPP_TOOLCHAIN=1
+# Note: Disabled on macOS to use system Xcode toolchain
+build:linux --action_env BAZEL_DO_NOT_DETECT_CPP_TOOLCHAIN=1
+build:windows --action_env BAZEL_DO_NOT_DETECT_CPP_TOOLCHAIN=1
 
 # This snippet instructs Bazel to use the registered "new kinds of toolchains".
 # This flag not needed after this issue is closed https://github.com/bazelbuild/bazel/issues/7260
-build --incompatible_enable_cc_toolchain_resolution
+# Note: Disabled on macOS to use system Xcode toolchain
+build:linux --incompatible_enable_cc_toolchain_resolution
+build:windows --incompatible_enable_cc_toolchain_resolution
 
 # Add a no-op warning for users still using --config=llvm
 build:llvm --unconditional_warning="llvm config is no longer used as clang is now the default compiler"
