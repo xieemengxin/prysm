@@ -114,6 +114,18 @@ func (f FieldIndex) String() string {
 		return "pendingConsolidations"
 	case ProposerLookahead:
 		return "proposerLookahead"
+	case TermDeposits:
+		return "termDeposits"
+	case PendingTermDeposits:
+		return "pendingTermDeposits"
+	case NextTermDepositId:
+		return "nextTermDepositId"
+	case PendingTermWithdrawals:
+		return "pendingTermWithdrawals"
+	case TermDepositPenaltyPool:
+		return "termDepositPenaltyPool"
+	case TermDepositPenaltyPoolLastDistEpoch:
+		return "termDepositPenaltyPoolLastDistEpoch"
 	default:
 		return fmt.Sprintf("unknown field index number: %d", f)
 	}
@@ -199,6 +211,18 @@ func (f FieldIndex) RealPosition() int {
 		return 36
 	case ProposerLookahead:
 		return 37
+	case TermDeposits:
+		return 38
+	case PendingTermDeposits:
+		return 39
+	case NextTermDepositId:
+		return 40
+	case PendingTermWithdrawals:
+		return 41
+	case TermDepositPenaltyPool:
+		return 42
+	case TermDepositPenaltyPoolLastDistEpoch:
+		return 43
 	default:
 		return -1
 	}
@@ -264,6 +288,14 @@ const (
 	PendingPartialWithdrawals     // Electra: EIP-7251
 	PendingConsolidations         // Electra: EIP-7251
 	ProposerLookahead             // Fulu: EIP-7917
+
+	// 定期存单相关字段（在 ProposerLookahead 之后添加）
+	TermDeposits                        // 所有定期存单列表
+	PendingTermDeposits                 // 待处理的定期存单队列
+	NextTermDepositId                   // 下一个存单 ID
+	PendingTermWithdrawals              // 待处理的存单撤出请求
+	TermDepositPenaltyPool              // 公共奖励池
+	TermDepositPenaltyPoolLastDistEpoch // 罚没池上次分配的 epoch
 )
 
 // Enumerator keeps track of the number of states created since the node's start.

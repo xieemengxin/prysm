@@ -128,6 +128,14 @@ func ConvertToElectra(beaconState state.BeaconState) (state.BeaconState, error) 
 		PendingDeposits:            make([]*ethpb.PendingDeposit, 0),
 		PendingPartialWithdrawals:  make([]*ethpb.PendingPartialWithdrawal, 0),
 		PendingConsolidations:      make([]*ethpb.PendingConsolidation, 0),
+		// ========== 新增：定期存单字段初始化 ==========
+		TermDeposits:                                make([]*ethpb.TermDeposit, 0),
+		PendingTermDeposits:                         make([]*ethpb.PendingTermDeposit, 0),
+		NextTermDepositId:                           0,
+		PendingTermWithdrawals:                      make([]*ethpb.TermWithdrawalRequest, 0),
+		TermDepositPenaltyPool:                      0,
+		TermDepositPenaltyPoolLastDistributionEpoch: 0,
+		// ========== 新增结束 ==========
 	}
 
 	// need to cast the beaconState to use in helper functions

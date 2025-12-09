@@ -5,10 +5,13 @@ import (
 
 	"github.com/OffchainLabs/prysm/v6/beacon-chain/state"
 	"github.com/OffchainLabs/prysm/v6/config/params"
+	"github.com/OffchainLabs/prysm/v6/consensus-types/primitives"
 	ethpb "github.com/OffchainLabs/prysm/v6/proto/prysm/v1alpha1"
+	"github.com/OffchainLabs/prysm/v6/time/slots"
+	log "github.com/sirupsen/logrus"
 )
 
-// ProcessEffectiveBalanceUpdates processes effective balance updates during epoch processing.
+// ProcessEffectiveBalanceUpdates 处理有效余额更新
 //
 // Spec pseudocode definition:
 //
@@ -36,6 +39,7 @@ func ProcessEffectiveBalanceUpdates(st state.BeaconState) error {
 	upwardThreshold := hysteresisInc * params.BeaconConfig().HysteresisUpwardMultiplier
 
 	bals := st.Balances()
+	currentEpoch := slots.ToEpoch(st.Slot())
 
 	// Update effective balances with hysteresis.
 	validatorFunc := func(idx int, val state.ReadOnlyValidator) (newVal *ethpb.Validator, err error) {
@@ -45,15 +49,37 @@ func ProcessEffectiveBalanceUpdates(st state.BeaconState) error {
 		if idx >= len(bals) {
 			return nil, fmt.Errorf("validator index exceeds validator length in state %d >= %d", idx, len(st.Balances()))
 		}
-		balance := bals[idx]
 
+		// 活期余额
+		demandBalance := bals[idx]
+
+		// 获取未过期定期存单总额（包括宽限期内的存单）
+		termBalance, err := GetActiveTermDepositBalance(st, primitives.ValidatorIndex(idx), currentEpoch)
+		if err != nil {
+			// 如果获取失败，记录警告但继续处理（使用 0）
+			log.WithError(err).WithField("validator", idx).Warn("Failed to get term deposit balance, using 0")
+			termBalance = 0
+		}
+
+		// 总可用余额 = 活期 + 定期
+		totalBalance := demandBalance + termBalance
+
+		// 有效余额上限逻辑
 		effectiveBalanceLimit := params.BeaconConfig().MinActivationBalance
 		if val.HasCompoundingWithdrawalCredentials() {
 			effectiveBalanceLimit = params.BeaconConfig().MaxEffectiveBalanceElectra
+		} else if termBalance > 0 {
+			// 对于有定期存单但无复合凭证的验证者，记录警告
+			// 保持 MinActivationBalance 上限（更安全）
+			log.WithFields(log.Fields{
+				"validator":    idx,
+				"term_balance": termBalance,
+				"limit":        effectiveBalanceLimit,
+			}).Warn("Validator has term deposits but no compounding credentials, effective balance capped at MinActivationBalance")
 		}
 
-		if balance+downwardThreshold < val.EffectiveBalance() || val.EffectiveBalance()+upwardThreshold < balance {
-			effectiveBal := min(balance-balance%effBalanceInc, effectiveBalanceLimit)
+		if totalBalance+downwardThreshold < val.EffectiveBalance() || val.EffectiveBalance()+upwardThreshold < totalBalance {
+			effectiveBal := min(totalBalance-totalBalance%effBalanceInc, effectiveBalanceLimit)
 			newVal = val.Copy()
 			newVal.EffectiveBalance = effectiveBal
 		}

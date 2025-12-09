@@ -318,6 +318,39 @@ func ComputeFieldRootsWithHasher(ctx context.Context, state *BeaconState) ([][]b
 			return nil, errors.Wrap(err, "could not compute pending consolidations merkleization")
 		}
 		fieldRoots[types.PendingConsolidations.RealPosition()] = pcRoot[:]
+
+		// TermDeposits root.
+		tdRoot, err := stateutil.TermDepositsRoot(state.termDeposits)
+		if err != nil {
+			return nil, errors.Wrap(err, "could not compute term deposits merkleization")
+		}
+		fieldRoots[types.TermDeposits.RealPosition()] = tdRoot[:]
+
+		// PendingTermDeposits root.
+		ptdRoot, err := stateutil.PendingTermDepositsRoot(state.pendingTermDeposits)
+		if err != nil {
+			return nil, errors.Wrap(err, "could not compute pending term deposits merkleization")
+		}
+		fieldRoots[types.PendingTermDeposits.RealPosition()] = ptdRoot[:]
+
+		// NextTermDepositId root.
+		ntdiRoot := ssz.Uint64Root(state.nextTermDepositId)
+		fieldRoots[types.NextTermDepositId.RealPosition()] = ntdiRoot[:]
+
+		// PendingTermWithdrawals root.
+		ptwRoot, err := stateutil.PendingTermWithdrawalsRoot(state.pendingTermWithdrawals)
+		if err != nil {
+			return nil, errors.Wrap(err, "could not compute pending term withdrawals merkleization")
+		}
+		fieldRoots[types.PendingTermWithdrawals.RealPosition()] = ptwRoot[:]
+
+		// TermDepositPenaltyPool root.
+		tdppRoot := ssz.Uint64Root(state.termDepositPenaltyPool)
+		fieldRoots[types.TermDepositPenaltyPool.RealPosition()] = tdppRoot[:]
+
+		// TermDepositPenaltyPoolLastDistEpoch root.
+		tdppldeRoot := ssz.Uint64Root(uint64(state.termDepositPenaltyPoolLastDistEpoch))
+		fieldRoots[types.TermDepositPenaltyPoolLastDistEpoch.RealPosition()] = tdppldeRoot[:]
 	}
 
 	if state.version >= version.Fulu {

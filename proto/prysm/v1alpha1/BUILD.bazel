@@ -25,7 +25,7 @@ proto_library(
         "powchain.proto",
         "slasher.proto",
         "validator.proto",
-        ":ssz_proto_files",
+        ":ssz_proto_files",  # term_deposit.proto 已包含在 ssz_proto_files 中
     ],
     visibility = ["//visibility:public"],
     deps = [
@@ -171,6 +171,7 @@ ssz_electra_objs = [
     "PendingDeposits",
     "PendingConsolidation",
     "PendingPartialWithdrawal",
+    "PendingTermDeposit",       # 新增
     "SignedAggregateAttestationAndProofElectra",
     "SignedAggregateAttestationAndProofSingle",
     "SignedBeaconBlockContentsElectra",
@@ -179,6 +180,8 @@ ssz_electra_objs = [
     "SignedConsolidation",
     "SingleAttestation",
     "SignedBuilderBidElectra",
+    "TermDeposit",              # 新增
+    "TermWithdrawalRequest",    # 新增
 ]
 
 ssz_fulu_objs = [
@@ -398,6 +401,7 @@ ssz_proto_files(
         "data_columns.proto",
         "light_client.proto",
         "sync_committee.proto",
+        "term_deposit.proto",  # 新增
         "withdrawals.proto",
     ],
     config = select({

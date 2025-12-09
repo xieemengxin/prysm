@@ -106,6 +106,13 @@ var (
 		types.PendingDeposits,
 		types.PendingPartialWithdrawals,
 		types.PendingConsolidations,
+		// ========== 新增 term deposit 字段 ==========
+		types.TermDeposits,
+		types.PendingTermDeposits,
+		types.NextTermDepositId,
+		types.PendingTermWithdrawals,
+		types.TermDepositPenaltyPool,
+		types.TermDepositPenaltyPoolLastDistEpoch,
 	)
 
 	fuluFields = append(
@@ -120,8 +127,8 @@ const (
 	bellatrixSharedFieldRefCount = 6
 	capellaSharedFieldRefCount   = 7
 	denebSharedFieldRefCount     = 7
-	electraSharedFieldRefCount   = 10
-	fuluSharedFieldRefCount      = 11
+	electraSharedFieldRefCount   = 13 // 原 10 + 3 = 13
+	fuluSharedFieldRefCount      = 14 // 原 11 + 3 = 14
 )
 
 // InitializeFromProtoPhase0 the beacon state from a protobuf representation.
@@ -589,6 +596,13 @@ func InitializeFromProtoUnsafeElectra(st *ethpb.BeaconStateElectra) (state.Beaco
 		pendingDeposits:                   st.PendingDeposits,
 		pendingPartialWithdrawals:         st.PendingPartialWithdrawals,
 		pendingConsolidations:             st.PendingConsolidations,
+		// ========== 新增 term deposit 字段 ==========
+		termDeposits:                        st.TermDeposits,
+		pendingTermDeposits:                 st.PendingTermDeposits,
+		nextTermDepositId:                   st.NextTermDepositId,
+		pendingTermWithdrawals:              st.PendingTermWithdrawals,
+		termDepositPenaltyPool:              st.TermDepositPenaltyPool,
+		termDepositPenaltyPoolLastDistEpoch: st.TermDepositPenaltyPoolLastDistributionEpoch,
 
 		dirtyFields:      make(map[types.FieldIndex]bool, fieldCount),
 		dirtyIndices:     make(map[types.FieldIndex][]uint64, fieldCount),
@@ -627,6 +641,10 @@ func InitializeFromProtoUnsafeElectra(st *ethpb.BeaconStateElectra) (state.Beaco
 	b.sharedFieldReferences[types.PendingDeposits] = stateutil.NewRef(1)           // New in Electra.
 	b.sharedFieldReferences[types.PendingPartialWithdrawals] = stateutil.NewRef(1) // New in Electra.
 	b.sharedFieldReferences[types.PendingConsolidations] = stateutil.NewRef(1)     // New in Electra.
+	// ========== 新增 term deposit 共享引用 ==========
+	b.sharedFieldReferences[types.TermDeposits] = stateutil.NewRef(1)
+	b.sharedFieldReferences[types.PendingTermDeposits] = stateutil.NewRef(1)
+	b.sharedFieldReferences[types.PendingTermWithdrawals] = stateutil.NewRef(1)
 
 	state.Count.Inc()
 	// Finalizer runs when dst is being destroyed in garbage collection.
@@ -690,6 +708,13 @@ func InitializeFromProtoUnsafeFulu(st *ethpb.BeaconStateFulu) (state.BeaconState
 		pendingPartialWithdrawals:         st.PendingPartialWithdrawals,
 		pendingConsolidations:             st.PendingConsolidations,
 		proposerLookahead:                 proposerLookahead,
+		// ========== 新增 term deposit 字段 ==========
+		termDeposits:                        st.TermDeposits,
+		pendingTermDeposits:                 st.PendingTermDeposits,
+		nextTermDepositId:                   st.NextTermDepositId,
+		pendingTermWithdrawals:              st.PendingTermWithdrawals,
+		termDepositPenaltyPool:              st.TermDepositPenaltyPool,
+		termDepositPenaltyPoolLastDistEpoch: st.TermDepositPenaltyPoolLastDistributionEpoch,
 
 		dirtyFields:      make(map[types.FieldIndex]bool, fieldCount),
 		dirtyIndices:     make(map[types.FieldIndex][]uint64, fieldCount),
@@ -729,6 +754,11 @@ func InitializeFromProtoUnsafeFulu(st *ethpb.BeaconStateFulu) (state.BeaconState
 	b.sharedFieldReferences[types.PendingPartialWithdrawals] = stateutil.NewRef(1)
 	b.sharedFieldReferences[types.PendingConsolidations] = stateutil.NewRef(1)
 	b.sharedFieldReferences[types.ProposerLookahead] = stateutil.NewRef(1) // New in Fulu.
+
+	// ========== 新增 term deposit 共享引用 ==========
+	b.sharedFieldReferences[types.TermDeposits] = stateutil.NewRef(1)
+	b.sharedFieldReferences[types.PendingTermDeposits] = stateutil.NewRef(1)
+	b.sharedFieldReferences[types.PendingTermWithdrawals] = stateutil.NewRef(1)
 
 	state.Count.Inc()
 	// Finalizer runs when dst is being destroyed in garbage collection.
@@ -796,6 +826,14 @@ func (b *BeaconState) Copy() state.BeaconState {
 		pendingDeposits:            b.pendingDeposits,
 		pendingPartialWithdrawals:  b.pendingPartialWithdrawals,
 		pendingConsolidations:      b.pendingConsolidations,
+
+		// ========== 新增 term deposit 字段 ==========
+		termDeposits:                        b.termDeposits,
+		pendingTermDeposits:                 b.pendingTermDeposits,
+		nextTermDepositId:                   b.nextTermDepositId,
+		pendingTermWithdrawals:              b.pendingTermWithdrawals,
+		termDepositPenaltyPool:              b.termDepositPenaltyPool,
+		termDepositPenaltyPoolLastDistEpoch: b.termDepositPenaltyPoolLastDistEpoch,
 
 		// Everything else, too small to be concerned about, constant size.
 		genesisValidatorsRoot:               b.genesisValidatorsRoot,
@@ -1180,6 +1218,18 @@ func (b *BeaconState) rootSelector(ctx context.Context, field types.FieldIndex) 
 		return stateutil.PendingConsolidationsRoot(b.pendingConsolidations)
 	case types.ProposerLookahead:
 		return stateutil.ProposerLookaheadRoot(b.proposerLookahead)
+	case types.TermDeposits:
+		return stateutil.TermDepositsRoot(b.termDeposits)
+	case types.PendingTermDeposits:
+		return stateutil.PendingTermDepositsRoot(b.pendingTermDeposits)
+	case types.NextTermDepositId:
+		return ssz.Uint64Root(b.nextTermDepositId), nil
+	case types.PendingTermWithdrawals:
+		return stateutil.PendingTermWithdrawalsRoot(b.pendingTermWithdrawals)
+	case types.TermDepositPenaltyPool:
+		return ssz.Uint64Root(b.termDepositPenaltyPool), nil
+	case types.TermDepositPenaltyPoolLastDistEpoch:
+		return ssz.Uint64Root(uint64(b.termDepositPenaltyPoolLastDistEpoch)), nil
 	}
 	return [32]byte{}, errors.New("invalid field index provided")
 }

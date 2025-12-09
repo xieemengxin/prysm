@@ -1,0 +1,105 @@
+// Copyright 2024 Prysmatic Labs.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+syntax = "proto3";
+
+package ethereum.eth.v1alpha1;
+
+import "proto/eth/ext/options.proto";
+
+option csharp_namespace = "Ethereum.Eth.v1alpha1";
+option go_package = "github.com/OffchainLabs/prysm/v6/proto/prysm/v1alpha1;eth";
+option java_multiple_files = true;
+option java_outer_classname = "TermDepositProto";
+option java_package = "org.ethereum.eth.v1alpha1";
+option php_namespace = "Ethereum\\Eth\\v1alpha1";
+
+// TermDeposit 定期存单
+// 状态常量（用于 status 字段）:
+//   0 = ACTIVE             活跃（未到期）
+//   1 = MATURED            已到期（宽限期内）
+//   2 = WITHDRAWN          已撤出
+//   3 = PENDING_WITHDRAWAL 撤出中
+message TermDeposit {
+  // 存单唯一标识（自增 ID）
+  uint64 deposit_id = 1;
+
+  // 关联的验证者索引
+  uint64 validator_index = 2 [(ethereum.eth.ext.cast_type) =
+      "github.com/OffchainLabs/prysm/v6/consensus-types/primitives.ValidatorIndex"];
+
+  // 存款金额（gwei）
+  uint64 amount = 3;
+
+  // 存单创建时的 epoch
+  uint64 start_epoch = 4 [(ethereum.eth.ext.cast_type) =
+      "github.com/OffchainLabs/prysm/v6/consensus-types/primitives.Epoch"];
+
+  // 存单期限（epoch 数量）
+  uint64 term_duration = 5;
+
+  // 存单到期的 epoch（start_epoch + term_duration）
+  uint64 maturity_epoch = 6 [(ethereum.eth.ext.cast_type) =
+      "github.com/OffchainLabs/prysm/v6/consensus-types/primitives.Epoch"];
+
+  // 自动续期宽限期（epoch 数量）
+  uint64 grace_period = 7;
+
+  // 存单状态 (0=ACTIVE, 1=MATURED, 2=WITHDRAWN, 3=PENDING_WITHDRAWAL)
+  uint64 status = 8;
+
+  // 续期次数
+  uint32 renewal_count = 9;
+}
+
+// PendingTermDeposit 待处理的定期存单（从 ETH1 传入）
+message PendingTermDeposit {
+  // 验证者公钥
+  bytes public_key = 1 [(ethereum.eth.ext.ssz_size) = "48"];
+
+  // 提现凭证
+  bytes withdrawal_credentials = 2 [(ethereum.eth.ext.ssz_size) = "32"];
+
+  // 存款金额（gwei）
+  uint64 amount = 3;
+
+  // BLS 签名
+  bytes signature = 4 [(ethereum.eth.ext.ssz_size) = "96"];
+
+  // 存款所在 slot
+  uint64 slot = 5 [(ethereum.eth.ext.cast_type) =
+      "github.com/OffchainLabs/prysm/v6/consensus-types/primitives.Slot"];
+
+  // 期限（epoch 数）
+  uint64 term_duration = 6;
+
+  // 宽限期（epoch 数）
+  uint64 grace_period = 7;
+}
+
+// TermWithdrawalRequest 存单提前撤出请求
+message TermWithdrawalRequest {
+  // 存单 ID
+  uint64 deposit_id = 1;
+
+  // 验证者索引
+  uint64 validator_index = 2 [(ethereum.eth.ext.cast_type) =
+      "github.com/OffchainLabs/prysm/v6/consensus-types/primitives.ValidatorIndex"];
+
+  // 罚没比例（basis points, 1/10000）
+  uint32 penalty_bps = 3;
+
+  // 请求所在 slot
+  uint64 slot = 4 [(ethereum.eth.ext.cast_type) =
+      "github.com/OffchainLabs/prysm/v6/consensus-types/primitives.Slot"];
+}

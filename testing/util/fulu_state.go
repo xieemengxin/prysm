@@ -105,6 +105,14 @@ func emptyGenesisStateFulu() (state.BeaconState, error) {
 
 		// Fulu specific field
 		ProposerLookahead: []uint64{},
+
+		// Term deposit 字段初始化
+		TermDeposits:                                make([]*ethpb.TermDeposit, 0),
+		PendingTermDeposits:                         make([]*ethpb.PendingTermDeposit, 0),
+		NextTermDepositId:                           0,
+		PendingTermWithdrawals:                      make([]*ethpb.TermWithdrawalRequest, 0),
+		TermDepositPenaltyPool:                      0,
+		TermDepositPenaltyPoolLastDistributionEpoch: 0,
 	}
 	return state_native.InitializeFromProtoFulu(st)
 }

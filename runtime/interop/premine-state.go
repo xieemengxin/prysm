@@ -201,6 +201,30 @@ func (s *PremineGenesisConfig) empty() (state.BeaconState, error) {
 			return nil, err
 		}
 	}
+
+	// ========== 新增：定期存单字段初始化 ==========
+	if s.Version >= version.Electra {
+		// 初始化 term deposit 字段
+		if err = e.SetTermDeposits(make([]*ethpb.TermDeposit, 0)); err != nil {
+			return nil, err
+		}
+		if err = e.SetPendingTermDeposits(make([]*ethpb.PendingTermDeposit, 0)); err != nil {
+			return nil, err
+		}
+		if err = e.SetNextTermDepositId(0); err != nil {
+			return nil, err
+		}
+		if err = e.SetPendingTermWithdrawals(make([]*ethpb.TermWithdrawalRequest, 0)); err != nil {
+			return nil, err
+		}
+		if err = e.SetTermDepositPenaltyPool(0); err != nil {
+			return nil, err
+		}
+		if err = e.SetTermDepositPenaltyPoolLastDistributionEpoch(0); err != nil {
+			return nil, err
+		}
+	}
+
 	return e.Copy(), nil
 }
 

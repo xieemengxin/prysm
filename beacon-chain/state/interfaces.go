@@ -63,6 +63,7 @@ type ReadOnlyBeaconState interface {
 	ReadOnlyDeposits
 	ReadOnlyConsolidations
 	ReadOnlyProposerLookahead
+	ReadOnlyTermDeposits
 	ToProtoUnsafe() interface{}
 	ToProto() interface{}
 	GenesisTime() time.Time
@@ -98,6 +99,7 @@ type WriteOnlyBeaconState interface {
 	WriteOnlyWithdrawals
 	WriteOnlyDeposits
 	WriteOnlyProposerLookahead
+	WriteOnlyTermDeposits
 	SetGenesisTime(val time.Time) error
 	SetGenesisValidatorsRoot(val []byte) error
 	SetSlot(val primitives.Slot) error
@@ -358,4 +360,30 @@ type WriteOnlyProposerLookahead interface {
 
 func IsNil(s BeaconState) bool {
 	return s == nil || s.IsNil()
+}
+
+// ReadOnlyTermDeposits 定义只读的定期存单接口
+type ReadOnlyTermDeposits interface {
+	TermDeposits() ([]*ethpb.TermDeposit, error)
+	TermDepositsForValidator(idx primitives.ValidatorIndex) ([]*ethpb.TermDeposit, error)
+	TermDepositById(depositId uint64) (*ethpb.TermDeposit, uint64, error)
+	PendingTermDeposits() ([]*ethpb.PendingTermDeposit, error)
+	PendingTermWithdrawals() ([]*ethpb.TermWithdrawalRequest, error)
+	NextTermDepositId() (uint64, error)
+	TermDepositPenaltyPool() (uint64, error)
+	TermDepositPenaltyPoolLastDistributionEpoch() (primitives.Epoch, error)
+}
+
+// WriteOnlyTermDeposits 定义只写的定期存单接口
+type WriteOnlyTermDeposits interface {
+	AppendTermDeposit(td *ethpb.TermDeposit) error
+	UpdateTermDepositAtIndex(idx uint64, td *ethpb.TermDeposit) error
+	UpdateTermDepositById(depositId uint64, td *ethpb.TermDeposit) error
+	SetTermDeposits(tds []*ethpb.TermDeposit) error
+	SetPendingTermDeposits(ptds []*ethpb.PendingTermDeposit) error
+	AppendPendingTermDeposit(ptd *ethpb.PendingTermDeposit) error
+	SetPendingTermWithdrawals(reqs []*ethpb.TermWithdrawalRequest) error
+	SetNextTermDepositId(id uint64) error
+	SetTermDepositPenaltyPool(amount uint64) error
+	SetTermDepositPenaltyPoolLastDistributionEpoch(epoch primitives.Epoch) error
 }

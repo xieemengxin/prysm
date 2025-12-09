@@ -110,6 +110,13 @@ func emptyGenesisStateElectra() (state.BeaconState, error) {
 		DepositBalanceToConsume:       primitives.Gwei(0),
 		ExitBalanceToConsume:          primitives.Gwei(0),
 		ConsolidationBalanceToConsume: primitives.Gwei(0),
+		// Term deposit 字段初始化
+		TermDeposits:                                make([]*ethpb.TermDeposit, 0),
+		PendingTermDeposits:                         make([]*ethpb.PendingTermDeposit, 0),
+		NextTermDepositId:                           0,
+		PendingTermWithdrawals:                      make([]*ethpb.TermWithdrawalRequest, 0),
+		TermDepositPenaltyPool:                      0,
+		TermDepositPenaltyPoolLastDistributionEpoch: 0,
 	}
 	return state_native.InitializeFromProtoElectra(st)
 }

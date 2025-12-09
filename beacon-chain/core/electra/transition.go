@@ -94,6 +94,19 @@ func ProcessEpoch(ctx context.Context, state state.BeaconState) error {
 	if err = ProcessPendingConsolidations(ctx, state); err != nil {
 		return err
 	}
+
+	// ========== 定期存单处理 (在 ProcessPendingConsolidations 之后，ProcessEffectiveBalanceUpdates 之前) ==========
+	if err = ProcessTermDepositMaturity(ctx, state); err != nil {
+		return errors.Wrap(err, "could not process term deposit maturity")
+	}
+	if err = ProcessPendingTermDeposits(ctx, state); err != nil {
+		return errors.Wrap(err, "could not process pending term deposits")
+	}
+	if err = ProcessTermWithdrawalRequests(ctx, state); err != nil {
+		return errors.Wrap(err, "could not process term withdrawal requests")
+	}
+	// ========== 定期存单处理结束 ==========
+
 	if err = ProcessEffectiveBalanceUpdates(state); err != nil {
 		return err
 	}
@@ -117,6 +130,13 @@ func ProcessEpoch(ctx context.Context, state state.BeaconState) error {
 	if err != nil {
 		return err
 	}
+
+	// ========== 罚没池分配 (在所有处理完成后) ==========
+	if err = ProcessTermDepositPenaltyDistribution(ctx, state); err != nil {
+		return errors.Wrap(err, "could not distribute penalty pool")
+	}
+	// ========== 罚没池分配结束 ==========
+
 	return nil
 }
 

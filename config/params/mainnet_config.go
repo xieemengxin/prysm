@@ -195,8 +195,8 @@ var mainnetBeaconConfig = &BeaconChainConfig{
 	BeaconStateBellatrixFieldCount: 25,
 	BeaconStateCapellaFieldCount:   28,
 	BeaconStateDenebFieldCount:     28,
-	BeaconStateElectraFieldCount:   37,
-	BeaconStateFuluFieldCount:      38,
+	BeaconStateElectraFieldCount:   43, // 37 + 6 term deposit fields
+	BeaconStateFuluFieldCount:      44, // 38 + 6 term deposit fields
 
 	// Slasher related values.
 	WeakSubjectivityPeriod:          54000,
@@ -339,6 +339,20 @@ var mainnetBeaconConfig = &BeaconChainConfig{
 	NodeIdBits:                      256,
 
 	BlobSchedule: []BlobScheduleEntry{},
+
+	// 定期存单配置
+	TermDepositsLimit:                          1 << 20, // 1,048,576
+	PendingTermDepositsLimit:                   1 << 16, // 65,536
+	MaxTermDepositsPerValidator:                256,
+	DefaultTermDepositGracePeriod:              4050,            // 约 3 天 (假设 12 秒/slot)
+	MinTermDepositGracePeriod:                  1350,            // 约 1 天
+	MaxTermDepositGracePeriod:                  40500,           // 约 30 天
+	MinTermDepositDuration:                     4050,            // 约 3 天
+	MaxTermDepositDuration:                     1350 * 365 * 10, // 约 10 年
+	EarlyWithdrawalPenaltyBaseBps:              100,             // 1%
+	MaxTermDepositRenewals:                     0,               // 0 = 无限制
+	TermDepositPenaltyPoolDistributionInterval: 1350,            // 每天分配一次
+	TermDepositForkEpoch:                       0,               // 创世即启用（私链）
 }
 
 // MainnetTestConfig provides a version of the mainnet config that has a different name

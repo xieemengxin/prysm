@@ -17,6 +17,7 @@ import (
 	"github.com/OffchainLabs/prysm/v6/runtime/version"
 	"github.com/OffchainLabs/prysm/v6/time/slots"
 	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 )
 
 // ExitInfo provides information about validator exits in the state.
@@ -259,7 +260,7 @@ func SlashValidator(
 		return nil, err
 	}
 
-	// The slashing amount is represented by epochs per slashing vector. The validator's effective balance is then applied to that amount.
+	// The slashing amount is represented by epochs per slashing vector.
 	slashings := s.Slashings()
 	currentSlashing := slashings[currentEpoch%params.BeaconConfig().EpochsPerSlashingsVector]
 	if err := s.UpdateSlashingsAtIndex(
@@ -276,11 +277,42 @@ func SlashValidator(
 
 	slashingPenalty, err := math.Div64(validator.EffectiveBalance, slashingQuotient)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to compute slashing slashingPenalty")
+		return nil, errors.Wrap(err, "failed to compute slashing penalty")
 	}
-	if err := helpers.DecreaseBalance(s, slashedIdx, slashingPenalty); err != nil {
+
+	// ========== 修改：先从活期扣除，不足时从定期存单扣除 ==========
+	demandBalance, err := s.BalanceAtIndex(slashedIdx)
+	if err != nil {
 		return nil, err
 	}
+
+	if demandBalance >= slashingPenalty {
+		// 活期余额充足，直接扣除
+		if err := helpers.DecreaseBalance(s, slashedIdx, slashingPenalty); err != nil {
+			return nil, err
+		}
+	} else {
+		// 活期不足，扣除全部活期后从定期存单扣除
+		if err := helpers.DecreaseBalance(s, slashedIdx, demandBalance); err != nil {
+			return nil, err
+		}
+
+		remainingPenalty := slashingPenalty - demandBalance
+
+		log.WithFields(logrus.Fields{
+			"validator":         slashedIdx,
+			"slashing_penalty":  slashingPenalty,
+			"demand_balance":    demandBalance,
+			"remaining_penalty": remainingPenalty,
+		}).Info("Demand balance insufficient for slashing penalty, deducting from term deposits")
+
+		// 从定期存单中扣除剩余惩罚（调用 helpers 包中的函数，避免循环引用）
+		_, err := helpers.SlashTermDeposits(s, slashedIdx, remainingPenalty)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to slash term deposits")
+		}
+	}
+	// ========== 修改结束 ==========
 
 	proposerIdx, err := helpers.BeaconProposerIndex(ctx, s)
 	if err != nil {

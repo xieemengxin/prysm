@@ -51,8 +51,6 @@ report.txt
 # bazel project
 .bazelbsp
 
-# doc
-TERM_DEPOSIT_MODIFICATION_GUIDE.md
 # lock
 MODULE.bazel.lock
-TERM_DEPOSIT_MODIFICATION_GUIDE_V2.md
+

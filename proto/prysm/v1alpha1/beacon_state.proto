@@ -7,6 +7,8 @@ import "proto/prysm/v1alpha1/beacon_core_types.proto";
 import "proto/engine/v1/execution_engine.proto";
 import "proto/eth/ext/options.proto";
 import "proto/prysm/v1alpha1/eip_7251.proto";
+// 在文件顶部添加 import
+import "proto/prysm/v1alpha1/term_deposit.proto";
 
 option csharp_namespace = "Ethereum.Eth.V1Alpha1";
 option go_package = "github.com/OffchainLabs/prysm/v6/proto/prysm/v1alpha1;eth";
@@ -607,6 +609,32 @@ message BeaconStateElectra {
       [ (ethereum.eth.ext.ssz_max) = "pending_partial_withdrawals_limit" ];
   repeated PendingConsolidation pending_consolidations = 12009
       [ (ethereum.eth.ext.ssz_max) = "pending_consolidations_limit" ];
+
+
+  // ========== 定期存单相关字段 [12010-12016] ==========
+
+  // 所有定期存单列表
+  repeated TermDeposit term_deposits = 12010
+      [(ethereum.eth.ext.ssz_max) = "1048576"];
+
+  // 待处理的定期存单队列
+  repeated PendingTermDeposit pending_term_deposits = 12011
+      [(ethereum.eth.ext.ssz_max) = "65536"];
+
+  // 下一个存单 ID（自增）
+  uint64 next_term_deposit_id = 12012;
+
+  // 待处理的存单撤出请求
+  repeated TermWithdrawalRequest pending_term_withdrawals = 12013
+      [(ethereum.eth.ext.ssz_max) = "65536"];
+
+  // 公共奖励池（存放罚没金额）
+  uint64 term_deposit_penalty_pool = 12014;
+
+  // 罚没池上次分配的 epoch
+  uint64 term_deposit_penalty_pool_last_distribution_epoch = 12015
+      [(ethereum.eth.ext.cast_type) =
+       "github.com/OffchainLabs/prysm/v6/consensus-types/primitives.Epoch"];
 }
 
 // ----------------------------------------------------------------------------
@@ -722,4 +750,29 @@ message BeaconStateFulu {
   // Fields introduced in Fulu fork [13001-14000]
   repeated uint64 proposer_lookahead = 13001
       [ (ethereum.eth.ext.ssz_size) = "proposer_lookahead_size" ];
+
+  // ========== 定期存单相关字段 [12010-12016] ==========
+
+  // 所有定期存单列表
+  repeated TermDeposit term_deposits = 12010
+      [(ethereum.eth.ext.ssz_max) = "1048576"];
+
+  // 待处理的定期存单队列
+  repeated PendingTermDeposit pending_term_deposits = 12011
+      [(ethereum.eth.ext.ssz_max) = "65536"];
+
+  // 下一个存单 ID（自增）
+  uint64 next_term_deposit_id = 12012;
+
+  // 待处理的存单撤出请求
+  repeated TermWithdrawalRequest pending_term_withdrawals = 12013
+      [(ethereum.eth.ext.ssz_max) = "65536"];
+
+  // 公共奖励池（存放罚没金额）
+  uint64 term_deposit_penalty_pool = 12014;
+
+  // 罚没池上次分配的 epoch
+  uint64 term_deposit_penalty_pool_last_distribution_epoch = 12015
+      [(ethereum.eth.ext.cast_type) =
+       "github.com/OffchainLabs/prysm/v6/consensus-types/primitives.Epoch"];
 }

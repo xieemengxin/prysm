@@ -116,6 +116,20 @@ func MinimalSpecConfig() *BeaconChainConfig {
 	minimalConfig.PendingDepositsLimit = 134217728
 	minimalConfig.MaxPendingDepositsPerEpoch = 16
 
+	// Term deposit params (minimal for testing)
+	minimalConfig.TermDepositsLimit = 64
+	minimalConfig.PendingTermDepositsLimit = 64
+	minimalConfig.MaxTermDepositsPerValidator = 4
+	minimalConfig.DefaultTermDepositGracePeriod = 8    // 1 epoch
+	minimalConfig.MinTermDepositGracePeriod = 4        // half epoch
+	minimalConfig.MaxTermDepositGracePeriod = 64       // 8 epochs
+	minimalConfig.MinTermDepositDuration = 8           // 1 epoch
+	minimalConfig.MaxTermDepositDuration = 256         // 32 epochs
+	minimalConfig.EarlyWithdrawalPenaltyBaseBps = 100  // 1%
+	minimalConfig.MaxTermDepositRenewals = 0           // unlimited
+	minimalConfig.TermDepositPenaltyPoolDistributionInterval = 8 // every epoch
+	minimalConfig.TermDepositForkEpoch = 0             // genesis enabled
+
 	// Ethereum PoW parameters.
 	minimalConfig.DepositChainID = 5   // Chain ID of eth1 goerli.
 	minimalConfig.DepositNetworkID = 5 // Network ID of eth1 goerli.

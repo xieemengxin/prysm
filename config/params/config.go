@@ -322,6 +322,44 @@ type BeaconChainConfig struct {
 	forkSchedule    *NetworkSchedule
 	bpoSchedule     *NetworkSchedule
 	networkSchedule *NetworkSchedule
+
+	// ========== 定期存单配置 ==========
+
+	// TermDepositsLimit 最大存单数量
+	TermDepositsLimit uint64 `yaml:"TERM_DEPOSITS_LIMIT" spec:"true"`
+
+	// PendingTermDepositsLimit 最大待处理存单数量
+	PendingTermDepositsLimit uint64 `yaml:"PENDING_TERM_DEPOSITS_LIMIT" spec:"true"`
+
+	// MaxTermDepositsPerValidator 每个验证者最大存单数
+	MaxTermDepositsPerValidator uint64 `yaml:"MAX_TERM_DEPOSITS_PER_VALIDATOR" spec:"true"`
+
+	// DefaultTermDepositGracePeriod 默认宽限期（epoch 数）
+	DefaultTermDepositGracePeriod uint64 `yaml:"DEFAULT_TERM_DEPOSIT_GRACE_PERIOD" spec:"true"`
+
+	// MinTermDepositGracePeriod 最小宽限期（epoch 数）
+	MinTermDepositGracePeriod uint64 `yaml:"MIN_TERM_DEPOSIT_GRACE_PERIOD" spec:"true"`
+
+	// MaxTermDepositGracePeriod 最大宽限期（epoch 数）
+	MaxTermDepositGracePeriod uint64 `yaml:"MAX_TERM_DEPOSIT_GRACE_PERIOD" spec:"true"`
+
+	// MinTermDepositDuration 最小期限（epoch 数）
+	MinTermDepositDuration uint64 `yaml:"MIN_TERM_DEPOSIT_DURATION" spec:"true"`
+
+	// MaxTermDepositDuration 最大期限（epoch 数）
+	MaxTermDepositDuration uint64 `yaml:"MAX_TERM_DEPOSIT_DURATION" spec:"true"`
+
+	// EarlyWithdrawalPenaltyBaseBps 提前撤出基础罚没比例（basis points）
+	EarlyWithdrawalPenaltyBaseBps uint64 `yaml:"EARLY_WITHDRAWAL_PENALTY_BASE_BPS" spec:"true"`
+
+	// MaxTermDepositRenewals 最大续期次数（0 表示无限制）
+	MaxTermDepositRenewals uint64 `yaml:"MAX_TERM_DEPOSIT_RENEWALS" spec:"true"`
+
+	// TermDepositPenaltyPoolDistributionInterval 罚没池分配间隔（epoch 数）
+	TermDepositPenaltyPoolDistributionInterval uint64 `yaml:"TERM_DEPOSIT_PENALTY_POOL_DISTRIBUTION_INTERVAL" spec:"true"`
+
+	// TermDepositForkEpoch 定期存单分叉激活 epoch
+	TermDepositForkEpoch primitives.Epoch `yaml:"TERM_DEPOSIT_FORK_EPOCH" spec:"true"`
 }
 
 func (b *BeaconChainConfig) VersionToForkEpochMap() map[int]primitives.Epoch {

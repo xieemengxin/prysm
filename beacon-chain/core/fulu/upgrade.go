@@ -33,6 +33,7 @@ func UpgradeToFulu(ctx context.Context, beaconState state.BeaconState) (state.Be
 	if err := s.SetProposerLookahead(pl); err != nil {
 		return nil, errors.Wrap(err, "failed to set proposer lookahead")
 	}
+
 	return s, nil
 }
 
@@ -125,6 +126,31 @@ func ConvertToFulu(beaconState state.BeaconState) (state.BeaconState, error) {
 	if err != nil {
 		return nil, err
 	}
+	// 获取 Electra 的 term deposit 数据
+	termDeposits, err := beaconState.TermDeposits()
+	if err != nil {
+		return nil, err
+	}
+	pendingTermDeposits, err := beaconState.PendingTermDeposits()
+	if err != nil {
+		return nil, err
+	}
+	nextTermDepositId, err := beaconState.NextTermDepositId()
+	if err != nil {
+		return nil, err
+	}
+	pendingTermWithdrawals, err := beaconState.PendingTermWithdrawals()
+	if err != nil {
+		return nil, err
+	}
+	termDepositPenaltyPool, err := beaconState.TermDepositPenaltyPool()
+	if err != nil {
+		return nil, err
+	}
+	termDepositPenaltyPoolLastDistEpoch, err := beaconState.TermDepositPenaltyPoolLastDistributionEpoch()
+	if err != nil {
+		return nil, err
+	}
 	s := &ethpb.BeaconStateFulu{
 		GenesisTime:           uint64(beaconState.GenesisTime().Unix()),
 		GenesisValidatorsRoot: beaconState.GenesisValidatorsRoot(),
@@ -186,6 +212,13 @@ func ConvertToFulu(beaconState state.BeaconState) (state.BeaconState, error) {
 		PendingDeposits:               pendingDeposits,
 		PendingPartialWithdrawals:     pendingPartialWithdrawals,
 		PendingConsolidations:         pendingConsolidations,
+		// 继承 term deposit 字段
+		TermDeposits:                                termDeposits,
+		PendingTermDeposits:                         pendingTermDeposits,
+		NextTermDepositId:                           nextTermDepositId,
+		PendingTermWithdrawals:                      pendingTermWithdrawals,
+		TermDepositPenaltyPool:                      termDepositPenaltyPool,
+		TermDepositPenaltyPoolLastDistributionEpoch: termDepositPenaltyPoolLastDistEpoch,
 	}
 	return state_native.InitializeFromProtoUnsafeFulu(s)
 }

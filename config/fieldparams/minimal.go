@@ -42,6 +42,12 @@ const (
 	PendingPartialWithdrawalsLimit        = 64                // Maximum number of pending partial withdrawals in the beacon state.
 	PendingConsolidationsLimit            = 64                // Maximum number of pending consolidations in the beacon state.
 	MaxAttesterSlashingsElectra           = 1                 // Maximum number of attester slashings in a block.
+
+	// Term deposit related limits.
+	TermDepositsLimit           = 64 // Maximum number of term deposits in the beacon state (minimal for testing).
+	PendingTermDepositsLimit    = 64 // Maximum number of pending term deposits in the beacon state (minimal for testing).
+	PendingTermWithdrawalsLimit = 64 // Maximum number of pending term withdrawals in the beacon state (minimal for testing).
+
 	MaxRandomByte                         = uint64(1<<8 - 1)  // Maximum value for a random value using for proposer and sync committee sampling.
 	MaxRandomValueElectra                 = uint64(1<<16 - 1) // Maximum value for a random value using for proposer and sync committee sampling.
 

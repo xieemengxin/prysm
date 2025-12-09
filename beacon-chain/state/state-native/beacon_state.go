@@ -70,6 +70,14 @@ type BeaconState struct {
 	pendingConsolidations         []*ethpb.PendingConsolidation     // pending_consolidations: List[PendingConsolidation, PENDING_CONSOLIDATIONS_LIMIT]
 	proposerLookahead             []primitives.ValidatorIndex       // proposer_look_ahead: List[uint64, (MIN_LOOKAHEAD + 1)*SLOTS_PER_EPOCH]
 
+	// 定期存单字段
+	termDeposits                        []*ethpb.TermDeposit
+	pendingTermDeposits                 []*ethpb.PendingTermDeposit
+	nextTermDepositId                   uint64
+	pendingTermWithdrawals              []*ethpb.TermWithdrawalRequest
+	termDepositPenaltyPool              uint64
+	termDepositPenaltyPoolLastDistEpoch primitives.Epoch
+
 	id                    uint64
 	lock                  sync.RWMutex
 	dirtyFields           map[types.FieldIndex]bool
@@ -121,10 +129,16 @@ type beaconStateMarshalable struct {
 	EarliestExitEpoch                   primitives.Epoch                        `json:"earliest_exit_epoch" yaml:"earliest_exit_epoch"`
 	ConsolidationBalanceToConsume       primitives.Gwei                         `json:"consolidation_balance_to_consume" yaml:"consolidation_balance_to_consume"`
 	EarliestConsolidationEpoch          primitives.Epoch                        `json:"earliest_consolidation_epoch" yaml:"earliest_consolidation_epoch"`
-	PendingDeposits                     []*ethpb.PendingDeposit                 `json:"pending_deposits" yaml:"pending_deposits"`
-	PendingPartialWithdrawals           []*ethpb.PendingPartialWithdrawal       `json:"pending_partial_withdrawals" yaml:"pending_partial_withdrawals"`
-	PendingConsolidations               []*ethpb.PendingConsolidation           `json:"pending_consolidations" yaml:"pending_consolidations"`
-	ProposerLookahead                   []primitives.ValidatorIndex             `json:"proposer_look_ahead" yaml:"proposer_look_ahead"`
+	PendingDeposits                              []*ethpb.PendingDeposit                 `json:"pending_deposits" yaml:"pending_deposits"`
+	PendingPartialWithdrawals                    []*ethpb.PendingPartialWithdrawal       `json:"pending_partial_withdrawals" yaml:"pending_partial_withdrawals"`
+	PendingConsolidations                        []*ethpb.PendingConsolidation           `json:"pending_consolidations" yaml:"pending_consolidations"`
+	ProposerLookahead                            []primitives.ValidatorIndex             `json:"proposer_look_ahead" yaml:"proposer_look_ahead"`
+	TermDeposits                                 []*ethpb.TermDeposit                    `json:"term_deposits" yaml:"term_deposits"`
+	PendingTermDeposits                          []*ethpb.PendingTermDeposit             `json:"pending_term_deposits" yaml:"pending_term_deposits"`
+	NextTermDepositId                            uint64                                  `json:"next_term_deposit_id" yaml:"next_term_deposit_id"`
+	PendingTermWithdrawals                       []*ethpb.TermWithdrawalRequest          `json:"pending_term_withdrawals" yaml:"pending_term_withdrawals"`
+	TermDepositPenaltyPool                       uint64                                  `json:"term_deposit_penalty_pool" yaml:"term_deposit_penalty_pool"`
+	TermDepositPenaltyPoolLastDistributionEpoch  primitives.Epoch                        `json:"term_deposit_penalty_pool_last_distribution_epoch" yaml:"term_deposit_penalty_pool_last_distribution_epoch"`
 }
 
 func (b *BeaconState) MarshalJSON() ([]byte, error) {
@@ -175,10 +189,16 @@ func (b *BeaconState) MarshalJSON() ([]byte, error) {
 		EarliestExitEpoch:                   b.earliestExitEpoch,
 		ConsolidationBalanceToConsume:       b.consolidationBalanceToConsume,
 		EarliestConsolidationEpoch:          b.earliestConsolidationEpoch,
-		PendingDeposits:                     b.pendingDeposits,
-		PendingPartialWithdrawals:           b.pendingPartialWithdrawals,
-		PendingConsolidations:               b.pendingConsolidations,
-		ProposerLookahead:                   b.proposerLookahead,
+		PendingDeposits:                             b.pendingDeposits,
+		PendingPartialWithdrawals:                   b.pendingPartialWithdrawals,
+		PendingConsolidations:                       b.pendingConsolidations,
+		ProposerLookahead:                           b.proposerLookahead,
+		TermDeposits:                                b.termDeposits,
+		PendingTermDeposits:                         b.pendingTermDeposits,
+		NextTermDepositId:                           b.nextTermDepositId,
+		PendingTermWithdrawals:                      b.pendingTermWithdrawals,
+		TermDepositPenaltyPool:                      b.termDepositPenaltyPool,
+		TermDepositPenaltyPoolLastDistributionEpoch: b.termDepositPenaltyPoolLastDistEpoch,
 	}
 	return json.Marshal(marshalable)
 }
