@@ -67,8 +67,11 @@ build --tool_java_runtime_version=remotejdk_17
 
 # Pass necessary environment variables to the build sandbox (macOS only)
 # Note: /usr/bin must be included for git, date, and other standard Unix tools
+# Use both --action_env and --host_action_env to ensure workspace_status_command can find git/date
 build:macos --action_env=PATH=/Users/caoguangpei/sdk/go1.25.5/bin:/opt/homebrew/opt/openjdk@17/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/Library/Developer/CommandLineTools/usr/bin
+build:macos --host_action_env=PATH=/Users/caoguangpei/sdk/go1.25.5/bin:/opt/homebrew/opt/openjdk@17/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/Library/Developer/CommandLineTools/usr/bin
 build:macos --action_env=HOME
+build:macos --host_action_env=HOME
 build:macos --action_env=GOROOT=/Users/caoguangpei/sdk/go1.25.5
 build:macos --action_env=GOPATH
 build:macos --action_env=JAVA_HOME=/opt/homebrew/opt/openjdk@17/libexec/openjdk.jdk/Contents/Home

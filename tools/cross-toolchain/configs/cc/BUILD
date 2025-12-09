@@ -54,6 +54,10 @@ cc_toolchain_suite(
         "k8": ":cc-compiler-k8",
         "armeabi-v7a|compiler": ":cc-compiler-armeabi-v7a",
         "armeabi-v7a": ":cc-compiler-armeabi-v7a",
+        # Darwin toolchains (placeholder for macOS, actual toolchain from @local_config_cc)
+        "darwin_arm64": ":cc-compiler-armeabi-v7a",
+        "darwin_x86_64": ":cc-compiler-armeabi-v7a",
+        "darwin": ":cc-compiler-armeabi-v7a",
     },
 )
 
